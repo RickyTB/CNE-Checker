@@ -1,11 +1,13 @@
 import * as webdriver from "selenium-webdriver";
 import { until } from "selenium-webdriver";
 import * as fs from "fs/promises";
-import { CNEVote } from "./entities";
+import { Circunscripcion, CNEVote } from "./entities";
 import knex from "./bin/knex";
-import { Circunscripcion } from "./entities/Circunscripcion";
 
 let driver = new webdriver.Builder().forBrowser("chrome").build();
+
+let PRIMERA_JUNTA_ID = 793;
+let CANTIDAD_DESCARGA = 4000;
 
 async function select(id: string, optionValue: string | number) {
   const selectEl = await driver.findElement({ id });
@@ -117,7 +119,7 @@ async function buildCirMap(): Promise<Record<number, number>> {
 
 async function queryJuntas(
   limit: number = 50,
-  skip: number = 0,
+  skip: number = 0
 ): Promise<
   {
     juntaId: number;
@@ -142,12 +144,14 @@ async function queryJuntas(
       cirId: "c.cirId",
       provinciaId: "c.provinciaId",
     })
-    .where('j.id', '>', skip)
+    .where("j.id", ">", skip)
     .orderBy("j.id", "asc")
     .limit(limit) as any;
 }
 
-async function main() {
+let count = 2;
+
+async function collect() {
   const cirMap = await buildCirMap();
 
   await driver.get("https://resultados.cne.gob.ec/");
@@ -159,9 +163,15 @@ async function main() {
   await presidentBtn.click();
   await waitLoader();
 
-  const juntas = await queryJuntas(1000, 114);
+  count--;
+  const juntas = await queryJuntas(CANTIDAD_DESCARGA, PRIMERA_JUNTA_ID);
   for (const junta of juntas) {
-    console.log(`Analizando junta ${junta.juntaId} de 39985 (${(junta.juntaId / 39985 * 100).toFixed(2)}%)`)
+    console.log(
+      `Analizando junta #${junta.juntaId}, ${count} de ${CANTIDAD_DESCARGA} (${(
+        (count / CANTIDAD_DESCARGA) *
+        100
+      ).toFixed(2)}%)`
+    );
     const { results, summary } = await collectJunta(
       junta.codJunta,
       junta.codZona,
@@ -180,10 +190,21 @@ async function main() {
       }
     );
     await knex("res_presidente").insert(body, "id");
+    PRIMERA_JUNTA_ID = junta.juntaId;
+    count++;
     await resetPage();
   }
 
   return "LISTO";
+}
+
+async function main() {
+  try {
+    return await collect();
+  } catch (err) {
+    console.error(err);
+    return await main();
+  }
 }
 
 main().then(console.log).catch(console.error);
