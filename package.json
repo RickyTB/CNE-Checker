@@ -8,12 +8,14 @@
     "knex": "^0.21.17",
     "node-fetch": "^2.6.1",
     "pg": "^8.5.1",
-    "random-useragent": "^0.5.0"
+    "random-useragent": "^0.5.0",
+    "selenium-webdriver": "^4.0.0-beta.1"
   },
   "devDependencies": {
     "@types/node": "^14.14.31",
     "@types/node-fetch": "^2.5.8",
     "@types/random-useragent": "^0.3.0",
+    "@types/selenium-webdriver": "^4.0.11",
     "ts-node": "^9.1.1",
     "typescript": "^4.1.5"
   },
@@ -21,6 +23,7 @@
     "dev:download": "ts-node src/data-downloader.ts",
     "dev:provinces": "ts-node src/save-provinces.ts",
     "dev:tables": "ts-node src/create-tables.ts",
+    "dev:collect": "ts-node src/collect-results.ts",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
