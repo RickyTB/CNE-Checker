@@ -25,7 +25,7 @@ async function getCircunscripciones(
   provinciaId: number
 ): Promise<CNEResponse[]> {
   return fetch(
-    `${process.env.RESULTS_PAGE}/Resultados/CatalogoCircunscripcionJson`,
+    `${process.env.RESULTS_PAGE}Resultados/CatalogoCircunscripcionJson`,
     {
       headers,
       body: `intProvincia=${provinciaId}`,
@@ -38,7 +38,7 @@ async function getCantones(
   provinciaId: number,
   codCir: number = 0
 ): Promise<CNEResponse[]> {
-  return fetch(`${process.env.RESULTS_PAGE}/Resultados/CatalogoCantonJson`, {
+  return fetch(`${process.env.RESULTS_PAGE}Resultados/CatalogoCantonJson`, {
     headers,
     body: `intProvincia=${provinciaId}&intCircunscripcion=${codCir}`,
     method: "POST",
@@ -50,7 +50,7 @@ async function getParroquias(
   codCir: number = 0
 ): Promise<CNEResponse[]> {
   return fetch(
-    `${process.env.RESULTS_PAGE}/Resultados/CatalogoParroquiaJson`,
+    `${process.env.RESULTS_PAGE}Resultados/CatalogoParroquiaJson`,
     {
       headers,
       body: `intCanton=${codCanton}&intCircunscripcion=${codCir}`,
@@ -63,7 +63,7 @@ async function getZonas(
   codParroquia: number,
   codCir: number = 0
 ): Promise<CNEResponse[]> {
-  return fetch(`${process.env.RESULTS_PAGE}/Resultados/CatalogoZonaJson`, {
+  return fetch(`${process.env.RESULTS_PAGE}Resultados/CatalogoZonaJson`, {
     headers,
     body: `intParroquia=${codParroquia}&intCircunscripcion=${codCir}`,
     method: "POST",
@@ -75,7 +75,7 @@ async function getJuntas(
   codParroquia: number,
   codCir: number = 0
 ): Promise<CNEResponse[]> {
-  return fetch(`${process.env.RESULTS_PAGE}/Resultados/CatalogoJuntaJson`, {
+  return fetch(`${process.env.RESULTS_PAGE}Resultados/CatalogoJuntaJson`, {
     headers,
     body: `intZona=${codZona}&intParroquia=${codParroquia}&intCircunscripcion=${codCir}`,
     method: "POST",
