@@ -1,9 +1,15 @@
 import fetch from "node-fetch";
 import * as randomUseragent from "random-useragent";
 import knex from "./bin/knex";
-import { Canton, Junta, Parroquia, Provincia, Zona } from "./entities";
-import { CNEResponse } from "./entities/CNEResponse";
-import { Circunscripcion } from "./entities/Circunscripcion";
+import {
+  Canton,
+  Junta,
+  Parroquia,
+  Provincia,
+  Zona,
+  CNEResponse,
+  Circunscripcion,
+} from "./entities";
 
 const headers = {
   "User-Agent": randomUseragent.getRandom(),
@@ -19,7 +25,7 @@ async function getCircunscripciones(
   provinciaId: number
 ): Promise<CNEResponse[]> {
   return fetch(
-    "https://resultados.cne.gob.ec/Resultados/CatalogoCircunscripcionJson",
+    `${process.env.RESULTS_PAGE}/Resultados/CatalogoCircunscripcionJson`,
     {
       headers,
       body: `intProvincia=${provinciaId}`,
@@ -32,7 +38,7 @@ async function getCantones(
   provinciaId: number,
   codCir: number = 0
 ): Promise<CNEResponse[]> {
-  return fetch("https://resultados.cne.gob.ec/Resultados/CatalogoCantonJson", {
+  return fetch(`${process.env.RESULTS_PAGE}/Resultados/CatalogoCantonJson`, {
     headers,
     body: `intProvincia=${provinciaId}&intCircunscripcion=${codCir}`,
     method: "POST",
@@ -44,7 +50,7 @@ async function getParroquias(
   codCir: number = 0
 ): Promise<CNEResponse[]> {
   return fetch(
-    "https://resultados.cne.gob.ec/Resultados/CatalogoParroquiaJson",
+    `${process.env.RESULTS_PAGE}/Resultados/CatalogoParroquiaJson`,
     {
       headers,
       body: `intCanton=${codCanton}&intCircunscripcion=${codCir}`,
@@ -57,7 +63,7 @@ async function getZonas(
   codParroquia: number,
   codCir: number = 0
 ): Promise<CNEResponse[]> {
-  return fetch("https://resultados.cne.gob.ec/Resultados/CatalogoZonaJson", {
+  return fetch(`${process.env.RESULTS_PAGE}/Resultados/CatalogoZonaJson`, {
     headers,
     body: `intParroquia=${codParroquia}&intCircunscripcion=${codCir}`,
     method: "POST",
@@ -69,7 +75,7 @@ async function getJuntas(
   codParroquia: number,
   codCir: number = 0
 ): Promise<CNEResponse[]> {
-  return fetch("https://resultados.cne.gob.ec/Resultados/CatalogoJuntaJson", {
+  return fetch(`${process.env.RESULTS_PAGE}/Resultados/CatalogoJuntaJson`, {
     headers,
     body: `intZona=${codZona}&intParroquia=${codParroquia}&intCircunscripcion=${codCir}`,
     method: "POST",
@@ -94,7 +100,10 @@ async function saveCirs(
 }
 
 async function main() {
-  const provincias = await knex.select().from<Provincia>("provincia").where('id', '>=', 17);
+  const provincias = await knex
+    .select()
+    .from<Provincia>("provincia")
+    .where("id", ">=", 17);
   for (const provincia of provincias) {
     console.log(`Obteniendo información de juntas de ${provincia.nombre}`);
     const cneCir: CNEResponse[] = provincia.circunscripcion

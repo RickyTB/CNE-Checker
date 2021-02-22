@@ -154,7 +154,7 @@ let count = 2;
 async function collect() {
   const cirMap = await buildCirMap();
 
-  await driver.get("https://resultados.cne.gob.ec/");
+  await driver.get(process.env.RESULTS_PAGE);
   await waitLoader();
 
   const presidentBtn = await driver.wait(
