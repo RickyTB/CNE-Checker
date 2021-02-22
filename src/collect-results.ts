@@ -2,6 +2,8 @@ import * as webdriver from "selenium-webdriver";
 import { until } from "selenium-webdriver";
 import * as fs from "fs/promises";
 import { CNEVote } from "./entities";
+import knex from "./bin/knex";
+import { Circunscripcion } from "./entities/Circunscripcion";
 
 let driver = new webdriver.Builder().forBrowser("chrome").build();
 
@@ -42,27 +44,32 @@ const nulo = document.querySelector('label[for="VOTOS_NULOS"]+div').innerText;
 return [{name: 'SUFRAGANTES', votes: +sufragantes},{name: 'BLANCO', votes: +blanco},{name: 'NULO', votes: +nulo}];
 `;
 
-async function main() {
-  await driver.get("https://resultados.cne.gob.ec/");
-  await waitLoader();
+async function collectJunta(
+  codJunta: number,
+  codZona: number,
+  codParroquia: number,
+  codCanton: number,
+  codCir: number,
+  codProvincia: number
+) {
+  await select("ddlProvincia", codProvincia);
 
-  const presidentBtn = await driver.findElement({ className: "myButtonDig" });
-  await presidentBtn.click();
-
-  await waitLoader();
-  await select("ddlProvincia", 2);
-
-  await waitLoader();
-  await select("ddlCanton", 170);
-
-  await waitLoader();
-  await select("ddlParroquia", 5975);
-
-  await waitLoader();
-  await select("ddlZona", 0);
+  if (codCir) {
+    await waitLoader();
+    await select("ddlCircunscripcion", codCir);
+  }
 
   await waitLoader();
-  await select("ddlJunta", 53258);
+  await select("ddlCanton", codCanton);
+
+  await waitLoader();
+  await select("ddlParroquia", codParroquia);
+
+  await waitLoader();
+  await select("ddlZona", codZona);
+
+  await waitLoader();
+  await select("ddlJunta", codJunta);
 
   const consultarBtn = await driver.findElement({ id: "btnConsultar" });
   await driver.wait(until.elementIsVisible(consultarBtn));
@@ -82,7 +89,7 @@ async function main() {
   await Promise.all(
     actas.map((acta, index) =>
       fs.writeFile(
-        `./actas/out_${index}.jpg`,
+        `./actas/${codJunta}_${index + 1}.jpg`,
         acta.replace(/^data:image\/jpg;base64,/, ""),
         "base64"
       )
@@ -90,7 +97,93 @@ async function main() {
   );
 
   const summary = (await driver.executeScript(collectSummaryJS)) as CNEVote[];
-  console.log(results, summary);
+  return { results, summary };
+}
+
+async function resetPage() {
+  await driver.findElement({ css: "#pupupHeader>button" }).click();
+  const limpiarBtn = await driver.findElement({ id: "btnLimpiar" });
+  await driver.wait(until.elementIsVisible(limpiarBtn));
+  await limpiarBtn.click();
+  await waitLoader();
+}
+
+async function buildCirMap(): Promise<Record<number, number>> {
+  const cirs = (await knex({ cr: "circunscripcion" })
+    .select("*")
+    .orderBy("id", "asc")) as Circunscripcion[];
+  return cirs.reduce((obj, cir) => ({ ...obj, [cir.id]: cir.codigo }), {});
+}
+
+async function queryJuntas(
+  limit: number = 50,
+  skip: number = 0,
+): Promise<
+  {
+    juntaId: number;
+    codJunta: number;
+    codZona: number;
+    codParroquia: number;
+    codCanton: number;
+    cirId: number;
+    provinciaId: number;
+  }[]
+> {
+  return knex({ j: "junta" })
+    .join({ z: "zona" }, "z.id", "j.zonaId")
+    .join({ p: "parroquia" }, "p.id", "z.parroquiaId")
+    .join({ c: "canton" }, "c.id", "p.cantonId")
+    .select({
+      juntaId: "j.id",
+      codJunta: "j.codigo",
+      codZona: "z.codigo",
+      codParroquia: "p.codigo",
+      codCanton: "c.codigo",
+      cirId: "c.cirId",
+      provinciaId: "c.provinciaId",
+    })
+    .where('j.id', '>', skip)
+    .orderBy("j.id", "asc")
+    .limit(limit) as any;
+}
+
+async function main() {
+  const cirMap = await buildCirMap();
+
+  await driver.get("https://resultados.cne.gob.ec/");
+  await waitLoader();
+
+  const presidentBtn = await driver.wait(
+    until.elementLocated({ className: "myButtonDig" })
+  );
+  await presidentBtn.click();
+  await waitLoader();
+
+  const juntas = await queryJuntas(1000, 114);
+  for (const junta of juntas) {
+    console.log(`Analizando junta ${junta.juntaId} de 39985 (${(junta.juntaId / 39985 * 100).toFixed(2)}%)`)
+    const { results, summary } = await collectJunta(
+      junta.codJunta,
+      junta.codZona,
+      junta.codParroquia,
+      junta.codCanton,
+      cirMap[junta.cirId] || 0,
+      junta.provinciaId
+    );
+    const body = results.reduce(
+      (obj, vote, index) => ({ ...obj, [`cand_${index + 1}`]: vote.votes }),
+      {
+        total_suf: summary[0].votes,
+        blanco: summary[1].votes,
+        nulo: summary[2].votes,
+        juntaId: junta.juntaId,
+      }
+    );
+    await knex("res_presidente").insert(body, "id");
+    await resetPage();
+  }
+
+  return "LISTO";
 }
 
 main().then(console.log).catch(console.error);
