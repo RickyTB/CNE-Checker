@@ -1,0 +1,29 @@
+{
+  "name": "cne-checker",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "dependencies": {
+    "dotenv": "^8.2.0",
+    "knex": "^0.21.17",
+    "node-fetch": "^2.6.1",
+    "pg": "^8.5.1",
+    "random-useragent": "^0.5.0"
+  },
+  "devDependencies": {
+    "@types/node": "^14.14.31",
+    "@types/node-fetch": "^2.5.8",
+    "@types/random-useragent": "^0.3.0",
+    "ts-node": "^9.1.1",
+    "typescript": "^4.1.5"
+  },
+  "scripts": {
+    "dev:download": "ts-node src/data-downloader.ts",
+    "dev:provinces": "ts-node src/save-provinces.ts",
+    "dev:tables": "ts-node src/create-tables.ts",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}
