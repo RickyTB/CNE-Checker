@@ -74,18 +74,18 @@ async function collectJunta(
   await select("ddlJunta", codJunta);
 
   const consultarBtn = await driver.findElement({ id: "btnConsultar" });
-  await driver.wait(until.elementIsVisible(consultarBtn));
+  await driver.wait(until.elementIsVisible(consultarBtn), 5000);
   await consultarBtn.click();
 
   await waitLoader();
-  await driver.wait(until.elementLocated({ id: "tablaCandi" }), 10000);
+  await driver.wait(until.elementLocated({ id: "tablaCandi" }), 5000);
   const results = (await driver.executeScript(collectResultsJS)) as CNEVote[];
 
   const verActaBtn = await driver.findElement({ id: "tdVerActa" });
-  await driver.wait(until.elementIsVisible(verActaBtn));
+  await driver.wait(until.elementIsVisible(verActaBtn), 5000);
   await verActaBtn.click();
 
-  await driver.wait(until.elementLocated({ id: "pupupContenido" }));
+  await driver.wait(until.elementLocated({ id: "pupupContenido" }), 5000);
   const actas = (await driver.executeScript(collectActasJS)) as string[];
 
   await Promise.all(
@@ -163,7 +163,7 @@ async function collect() {
   await presidentBtn.click();
   await waitLoader();
 
-  const juntas = await queryJuntas(CANTIDAD_DESCARGA, PRIMERA_JUNTA_ID);
+  const juntas = await queryJuntas(CANTIDAD_DESCARGA - count + 1, PRIMERA_JUNTA_ID);
   for (const junta of juntas) {
     console.log(
       `Analizando junta #${junta.juntaId}, ${count} de ${CANTIDAD_DESCARGA} (${(
