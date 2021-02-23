@@ -98,6 +98,7 @@ async function main() {
       .integer("juntaId")
       .unsigned()
       .notNullable()
+      .unique()
       .references("id")
       .inTable("junta");
   });

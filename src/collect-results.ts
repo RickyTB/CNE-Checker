@@ -6,8 +6,8 @@ import knex from "./bin/knex";
 
 let driver = new webdriver.Builder().forBrowser("chrome").build();
 
-let PRIMERA_JUNTA_ID = 793;
-let CANTIDAD_DESCARGA = 4000;
+let PRIMERA_JUNTA_ID = 0;
+let CANTIDAD_DESCARGA = 40000;
 
 async function select(id: string, optionValue: string | number) {
   const selectEl = await driver.findElement({ id });
@@ -78,7 +78,7 @@ async function collectJunta(
   await consultarBtn.click();
 
   await waitLoader();
-  await driver.wait(until.elementLocated({ id: "tablaCandi" }));
+  await driver.wait(until.elementLocated({ id: "tablaCandi" }), 10000);
   const results = (await driver.executeScript(collectResultsJS)) as CNEVote[];
 
   const verActaBtn = await driver.findElement({ id: "tdVerActa" });
@@ -149,7 +149,7 @@ async function queryJuntas(
     .limit(limit) as any;
 }
 
-let count = 2;
+let count = 1;
 
 async function collect() {
   const cirMap = await buildCirMap();
@@ -163,7 +163,6 @@ async function collect() {
   await presidentBtn.click();
   await waitLoader();
 
-  count--;
   const juntas = await queryJuntas(CANTIDAD_DESCARGA, PRIMERA_JUNTA_ID);
   for (const junta of juntas) {
     console.log(
