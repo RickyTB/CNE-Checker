@@ -4,6 +4,7 @@
   "description": "",
   "main": "index.js",
   "dependencies": {
+    "csv-parser": "^3.0.0",
     "dotenv": "^8.2.0",
     "knex": "^0.21.17",
     "node-fetch": "^2.6.1",
@@ -24,6 +25,8 @@
     "dev:provinces": "ts-node src/save-provinces.ts",
     "dev:tables": "ts-node src/create-tables.ts",
     "dev:collect": "ts-node src/collect-results.ts",
+    "dev:files": "ts-node src/parse-files.ts",
+    "dev:integrity": "ts-node src/integrity-checker.ts",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
